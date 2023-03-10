@@ -176,7 +176,10 @@ class MessageController < ApplicationController
   #
   def handler_legacy
     # Hardcoded patterns to support Konekti launches.
-    patterns = Rails.configuration.handler_legacy_patterns
+    @tool = RailsLti2Provider::Tool.find_by_issuer(@message.oauth_consumer_key)
+    @tenant = @tool.tenant
+
+    patterns = @tenant.setting(:handler_legacy_patterns, Rails.configuration.handler_legacy_patterns)
     seed_string = ''
     patterns.split(',').each do |pattern|
       seed = ''

@@ -31,6 +31,8 @@ Rails.application.routes.draw do
       get 'users/:id', to: 'users#show', as: :users
       get 'user', to: 'users#show', as: :user
       get 'sessions/:token', to: 'sessions#validate_launch', as: :sessions
+      get 'tenants', to: 'tenants#index', as: :tenants
+      get 'tenant/:uid', to: 'tenants#show', as: :tenant
     end
   end
 

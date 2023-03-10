@@ -13,19 +13,17 @@ GIT
       simple_oauth (~> 0.3.1.1)
 
 GIT
-  remote: https://github.com/blindsidenetworks/rails_lti2_provider.git
-  revision: bdc2f0c6db9d88609356ff359a2e76d8f4628f61
-  tag: 0.1.4
-  specs:
-    rails_lti2_provider (0.1.4)
-      ims-lti (~> 2.3.2.1)
-
-GIT
   remote: https://github.com/blindsidenetworks/simple_oauth.git
   revision: 7f8e49ea7891c431424ddd53a659ebb569cd3947
   tag: v0.3.1.1
   specs:
     simple_oauth (0.3.1.1)
+
+PATH
+  remote: ../rails_lti2_provider
+  specs:
+    rails_lti2_provider (0.1.4)
+      ims-lti (~> 2.3.2.1)
 
 GEM
   remote: http://rubygems.org/
@@ -457,3 +455,6 @@ DEPENDENCIES
   tzinfo-data
   web-console (>= 4.2.0)
   webmock
+
+BUNDLED WITH
+   2.2.33
