@@ -94,9 +94,10 @@ ActiveRecord::Schema.define(version: 2023_02_24_170133) do
     t.string "lti_version"
     t.integer "tenant_id"
     t.datetime "expired_at"
+    t.text "deployment_id"
     t.index ["id", "tenant_id"], name: "index_tool_id_tenant_id", unique: true
     t.index ["tenant_id"], name: "index_tenant_id"
-    t.index ["uuid"], name: "index_uuid", unique: true
+    t.index ["uuid", "shared_secret", "deployment_id"], name: "index_deployment", unique: true
   end
 
   create_table "sessions", force: :cascade do |t|
