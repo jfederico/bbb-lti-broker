@@ -162,33 +162,6 @@ namespace :tool do
       puts(e.backtrace)
       exit(1)
     end
-
-    desc 'Show keys for tool by ID [id].'
-    task :keys, [:id] => :environment do |_t, args|
-      id = args[:id]
-      abort('The ID is required') if id.blank?
-
-      $stdout.puts('tool:show[id]')
-      tool = RailsLti2Provider::Tool.find_by(lti_version: '1.3.0', id: id)
-      abort("The tool with ID #{id} does not exist") if tool.blank?
-
-      key_dir = Pathname.new(JSON.parse(tool.tool_settings)['tool_private_key']).parent.to_s
-      private_key = File.read("#{key_dir}/priv_key")
-      public_key = File.read("#{key_dir}/pub_key")
-
-      output = "{'id': '#{tool.id}', 'uuid': '#{tool.uuid}', 'shared_secret': '#{tool.shared_secret}'}"
-      output += " for tenant '#{tool.tenant.uid}'" unless tool.tenant.uid.empty?
-      output += " is #{tool.status}"
-      puts(output)
-      $stdout.puts("\n")
-      $stdout.puts("Private Key:\n#{private_key}")
-      $stdout.puts("\n")
-      $stdout.puts("Public Key:\n#{public_key}")
-      $stdout.puts("\n")
-    rescue StandardError => e
-      puts(e.backtrace)
-      exit(1)
-    end
   end
 
   desc 'Show tools, by ID [id] if provided or all if it is not.'
@@ -262,6 +235,8 @@ namespace :tool do
       id = args[:id]
       abort('The ID is required') if id.blank?
 
+      $stdout.puts("tool:settings:show[#{args[:id]}]")
+
       $stdout.puts('tool:settings:show[id]')
       tool = RailsLti2Provider::Tool.find_by(lti_version: '1.3.0', id: id)
       abort("The tool with ID #{id} does not exist") if tool.blank?
@@ -277,6 +252,48 @@ namespace :tool do
       puts(e.backtrace)
       exit(1)
     end
+
+    desc 'Update a tool by ID with Key and Value [id,key,value]'
+    task :update, [:id, :key, :value] => :environment do |_t, args|
+      $stdout.puts('tool:settings:update[id,key,value]')
+
+      # ID.
+      id = args[:id]
+      if id.blank?
+        $stdout.puts('What is the ID?')
+        id = $stdin.gets.strip
+      end
+      abort('The ID cannot be blank.') if id.blank?
+
+      # Key.
+      key = args[:key]
+      if key.blank?
+        $stdout.puts('What is the Key?')
+        key = $stdin.gets.strip
+      end
+      abort('The Key cannot be blank.') if key.blank?
+
+      # Value.
+      value = args[:value]
+      if value.blank?
+        $stdout.puts('What is the Value?')
+        value = $stdin.gets.strip
+      end
+      abort('The Value cannot be blank.') if value.blank?
+
+      tool = RailsLti2Provider::Tool.find(id)
+      abort("The tool with id = #{id} does not exist") if tool.blank?
+
+      tool_settings = JSON.parse(tool.tool_settings)
+
+      tool_settings[key] = value
+      tool['tool_settings'] = tool_settings.to_json
+      tool.save
+      Rake::Task['tool:settings:show'].invoke(id)
+    rescue StandardError => e
+      puts(e.backtrace)
+      exit(1)
+    end
   end
 
   desc 'Show settings for tool by ID [id].'
@@ -285,6 +302,51 @@ namespace :tool do
     abort('The ID is required') if id.blank?
 
     Rake::Task['tool:settings:show'].invoke(id)
+  end
+
+  namespace :keys do
+    desc 'Show keys for tool by ID [id].'
+    task :show, [:id] => :environment do |_t, args|
+      id = args[:id]
+      abort('The ID is required') if id.blank?
+
+      $stdout.puts("tool:keys:show[#{args[:id]}]")
+
+      $stdout.puts('tool:show[id]')
+      tool = RailsLti2Provider::Tool.find_by(lti_version: '1.3.0', id: id)
+      abort("The tool with ID #{id} does not exist") if tool.blank?
+
+      tool_private_key = JSON.parse(tool.tool_settings)['tool_private_key']
+      abort("The tool_private_key for #{id} does not exist") if tool_private_key.blank?
+
+      key_dir = Pathname.new(tool_private_key).parent.to_s
+      private_key = File.read("#{key_dir}/priv_key")
+      public_key = File.read("#{key_dir}/pub_key")
+
+      output = "{'id': '#{tool.id}', 'uuid': '#{tool.uuid}', 'shared_secret': '#{tool.shared_secret}'}"
+      output += " for tenant '#{tool.tenant.uid}'" unless tool.tenant.uid.empty?
+      output += " is #{tool.status}"
+      puts(output)
+      $stdout.puts("\n")
+      $stdout.puts("Private Key:\n#{private_key}")
+      $stdout.puts("\n")
+      $stdout.puts("Public Key:\n#{public_key}")
+      $stdout.puts("\n")
+    rescue StandardError => e
+      puts(e.backtrace)
+      exit(1)
+    end
+  end
+
+  desc 'Show keys for tool by ID [id].'
+  task :keys, [:id] => :environment do |_t, args|
+    id = args[:id]
+    abort('The ID is required') if id.blank?
+
+    Rake::Task['tool:keys:show'].invoke(id)
+  rescue StandardError => e
+    puts(e.backtrace)
+    exit(1)
   end
 
   desc 'Update a tool by ID with Key and Value [id,key,value]'
@@ -326,7 +388,7 @@ namespace :tool do
   end
 
   desc 'Generate new key pair for existing Tool configuration'
-  task :keygen => :environment do |_t|
+  task keygen: :environment do |_t|
     $stdout.puts('What is the issuer for the tool?')
     issuer = $stdin.gets.strip
 
