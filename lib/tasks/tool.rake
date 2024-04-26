@@ -264,8 +264,8 @@ namespace :tool do
       tool_settings = JSON.parse(tool.tool_settings)
 
       tool_settings[key] = value
-      tool['tool_settings'] = tool_settings.to_json
-      tool.save
+      tool.update(tool_settings: tool_settings.to_json)
+
       Rake::Task['tool:settings:show'].invoke(id)
     rescue StandardError => e
       puts(e.backtrace)
@@ -333,7 +333,6 @@ namespace :tool do
 
       tool_settings['rsa_key_pair_token'] = key_pair_token
       tool.update(tool_settings: tool_settings.to_json)
-      tool.save
 
       Rake::Task['tool:keys:show'].invoke(id)
     rescue StandardError => e
