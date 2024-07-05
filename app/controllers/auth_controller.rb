@@ -65,9 +65,18 @@ class AuthController < ApplicationController
 
     auth_params[:lti_message_hint] = params[:lti_message_hint] if params.key?(:lti_message_hint)
 
+    # Append the debug=true parameter
     aparams = URI.encode_www_form(auth_params)
+
+    # Construct the redirect URL
     redirector = "#{@registration['auth_login_url']}?#{aparams}"
+
+    # Log the redirect URL
+    logger.debug("Redirecting to #{redirector}")
+
+    # Perform the redirect
     redirect_post(redirector, options: { authenticity_token: :auto })
+    # redirect_to(redirector)
   end
 
   private

@@ -30,6 +30,8 @@ require 'oauth/request_proxy/action_controller_request'
 class ApplicationController < ActionController::Base
   include AppsValidator
 
+  before_action :allow_iframe_requests
+
   protect_from_forgery with: :exception
   # CSRF stuff ^
 
@@ -43,5 +45,14 @@ class ApplicationController < ActionController::Base
     flash[:alert] = 'Can\'t verify CSRF token authenticity'
     @error = 'Third party cookies are disabled'
     redirect_to(errors_path(406))
+  end
+
+  private
+
+  def allow_iframe_requests
+    logger.debug('ApplicationController: allow_iframe_requests - removing X-Frame-Options')
+    logger.debug(response.headers.inspect)
+    response.headers.delete('X-Frame-Options')
+    logger.debug(response.headers.inspect)
   end
 end
