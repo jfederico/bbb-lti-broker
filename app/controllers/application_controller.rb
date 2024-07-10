@@ -30,18 +30,28 @@ require 'oauth/request_proxy/action_controller_request'
 class ApplicationController < ActionController::Base
   include AppsValidator
 
+  before_action :allow_iframe_requests
+
   protect_from_forgery with: :exception
   # CSRF stuff ^
 
   @build_number = Rails.configuration.build_number
 
-  def print_parameters
-    logger.debug(params.to_unsafe_h.sort.to_h.to_yaml)
-  end
-
   rescue_from ActionController::InvalidAuthenticityToken do |_exception|
     flash[:alert] = 'Can\'t verify CSRF token authenticity'
     @error = 'Third party cookies are disabled'
     redirect_to(errors_path(406))
+  end
+
+  private
+
+  def allow_iframe_requests
+    response.headers.delete('X-Frame-Options')
+  end
+
+  protected
+
+  def print_parameters
+    logger.debug(params.to_unsafe_h.sort.to_h.to_yaml)
   end
 end

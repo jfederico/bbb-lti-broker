@@ -60,6 +60,10 @@ REDIS_PREFIX=bbb-lti-broker
 # Default 'warn'.
 # LOG_LEVEL=warn
 
+## Define policy for cookies.
+# COOKIES_SAME_SITE=None
+# COOKIES_SECURE=true
+
 ## Define patterns for handler_legacy
 # Different legacy apps used different combinations of params to produce the handler or meetingID. On top of that
 # different consumers may come with differnt parameters or the data may be inconsistent. This is the reason why some
