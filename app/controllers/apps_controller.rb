@@ -23,8 +23,12 @@ class AppsController < ApplicationController
   # launch into lti application
   def launch
     # Make launch request to LTI-APP
+    session[:session_id] ||= SecureRandom.hex(32)
+    session_id = session[:session_id]
     lti_launch = RailsLti2Provider::LtiLaunch.find_by(nonce: params[:oauth_nonce])
-    redirector = "#{lti_app_url(params[:app], '/launch')}?#{{ launch_nonce: lti_launch.nonce }.to_query}"
-    redirect_post(redirector, options: { authenticity_token: :auto })
+    redirector = lti_app_url(params[:app], '/launch')
+    response.set_header('X-Session-ID', session.id)
+    redirect_post(redirector, params: { session_id: session_id, launch_nonce: lti_launch.nonce },  options: { authenticity_token: :auto })
+    # redirect_post(redirector, params: { launch_nonce: lti_launch.nonce },  options: { authenticity_token: :auto })
   end
 end

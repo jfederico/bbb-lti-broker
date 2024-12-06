@@ -64,8 +64,8 @@ class MessageController < ApplicationController
                                                                                 consumer_secret: consumer_secret(@message.oauth_consumer_key), callback: 'about:blank')
     logger.debug("ERROR: #{@error}")
     if request.request_parameters.key?('launch_presentation_return_url')
-      launch_presentation_return_url = "#{request.request_parameters['launch_presentation_return_url']}&lti_errormsg=#{@error}"
-      redirect_post(launch_presentation_return_url, options: { authenticity_token: :auto })
+      launch_presentation_return_url = request.request_parameters['launch_presentation_return_url']
+      redirect_post(launch_presentation_return_url, params: { lti_errormsg: @error }, options: { authenticity_token: :auto })
     else
       render(:basic_lti_launch_request, status: :ok)
     end
@@ -120,8 +120,8 @@ class MessageController < ApplicationController
     # Redirect to external application if configured
     Rails.cache.write(params[:oauth_nonce], message: @message, oauth: { consumer_key: params[:oauth_consumer_key], timestamp: params[:oauth_timestamp] })
     session[:user_id] = @current_user.id
-    redirector = app_launch_url(params.to_unsafe_h.symbolize_keys)
-    redirect_post(redirector, options: { authenticity_token: :auto })
+    redirector = app_launch_url()
+    redirect_post(redirector, params: params.to_unsafe_h.symbolize_keys, options: { authenticity_token: :auto })
   end
 
   # monkey patch for backward compatibility of old bbb-lti tools.
@@ -164,8 +164,8 @@ class MessageController < ApplicationController
     # Redirect to external application if configured.
     Rails.cache.write(params[:oauth_nonce], message: @message, oauth: { consumer_key: params[:oauth_consumer_key], timestamp: @jwt_body['exp'] })
     session[:user_id] = @current_user.id
-    redirector = app_launch_url(params.to_unsafe_h.symbolize_keys)
-    redirect_post(redirector, options: { authenticity_token: :auto })
+    redirector = app_launch_url()
+    redirect_post(redirector, params: params.to_unsafe_h.symbolize_keys, options: { authenticity_token: :auto })
   end
 
   # submit content item selection
